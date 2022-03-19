@@ -838,8 +838,6 @@ class Notifier(IndicatorUtils):
         left, width = 0.1, 0.8
         rect1 = [left, 0.69, width, 0.23]
         rect2 = [left, 0.51, width, 0.18]
-        rect3 = [left, 0.35, width, 0.16]
-        rect4 = [left, 0.08, width, 0.23]
 
         fig = plt.figure(facecolor='white')
         fig.set_size_inches(8, 18, forward=True)
@@ -848,8 +846,6 @@ class Notifier(IndicatorUtils):
         # left, bottom, width, height
         ax1 = fig.add_axes(rect1, facecolor=axescolor)
         ax2 = fig.add_axes(rect2, facecolor=axescolor, sharex=ax1)
-        ax3 = fig.add_axes(rect3, facecolor=axescolor, sharex=ax1)
-        ax4 = fig.add_axes(rect4, facecolor=axescolor)
 
         # Plot Candles chart
         candle_pattern = self.candle_check(candles_data, candle_period)
@@ -858,24 +854,9 @@ class Notifier(IndicatorUtils):
         # Plot RSI (14)
         self.plot_rsi(ax2, df)
 
-        # Calculate and plot MACD
-        self.plot_macd(ax3, df, candle_period)
-
-        # Plot ichimoku
-        self.plot_ichimoku(ax4, df, candles_data, candle_period)
-
-        for ax in ax1, ax2, ax3, ax4:
-            if ax != ax3 and ax != ax4:
-                for label in ax.get_xticklabels():
-                    label.set_visible(False)
-            elif ax == ax3:
-                for label in ax.get_xticklabels():
-                    label.set_rotation(30)
-                    label.set_horizontalalignment('right')
-            elif ax == ax4:
-                for label in ax.get_xticklabels():
-                    label.set_rotation(30)
-                    label.set_horizontalalignment('right')
+        for ax in ax1, ax2:
+            for label in ax.get_xticklabels():
+                label.set_visible(False)
 
             ax.xaxis.set_major_locator(mticker.MaxNLocator(10))
             ax.xaxis.set_major_formatter(DateFormatter('%d/%b'))
@@ -1046,15 +1027,8 @@ class Notifier(IndicatorUtils):
     def plot_candlestick(self, ax, df, candle_period, candle_pattern):
         textsize = 11
 
-        ma7 = self.EMA(df, 7)
-        ma25 = self.EMA(df, 25)
-        ma99 = self.EMA(df, 99)
-
         if(df['close'].count() > 120):
             df = df.iloc[-120:]
-            ma7 = ma7.iloc[-120:]
-            ma25 = ma25.iloc[-120:]
-            ma99 = ma99.iloc[-120:]
             candle_pattern = candle_pattern.iloc[-120:]
 
         _time = mdates.date2num(df.index.to_pydatetime())
@@ -1072,23 +1046,11 @@ class Notifier(IndicatorUtils):
         except:
             print(traceback.print_exc())
 
-        ax.plot(df.index, ma7, color='darkorange', lw=0.8, label='EMA (7)')
-        ax.plot(df.index, ma25, color='mediumslateblue',
-                lw=0.8, label='EMA (25)')
-        ax.plot(df.index, ma99, color='firebrick', lw=0.8, label='EMA (99)')
-
-        ax.text(0.04, 0.94, 'EMA (7, close)', color='darkorange',
-                transform=ax.transAxes, fontsize=textsize, va='top')
-        ax.text(0.24, 0.94, 'EMA (25, close)', color='mediumslateblue',
-                transform=ax.transAxes,  fontsize=textsize, va='top')
-        ax.text(0.46, 0.94, 'EMA (99, close)', color='firebrick',
-                transform=ax.transAxes,  fontsize=textsize, va='top')
-
-    def plot_rsi(self, ax, df):
+    def plot_rsi(self, ax, df, periods=14):
         textsize = 11
         fillcolor = 'darkmagenta'
 
-        rsi = self.relative_strength(df["close"])
+        rsi = self.relative_strength(df["close"], n=periods)
 
         if(df['close'].count() > 120):
             df = df.iloc[-120:]
@@ -1103,7 +1065,7 @@ class Notifier(IndicatorUtils):
                         facecolor=fillcolor, edgecolor=fillcolor)
         ax.set_ylim(0, 100)
         ax.set_yticks([30, 70])
-        ax.text(0.024, 0.94, 'RSI (14)', va='top',
+        ax.text(0.024, 0.94, f'RSI ({periods})', va='top',
                 transform=ax.transAxes, fontsize=textsize)
 
     def plot_macd(self, ax, df, candle_period):
