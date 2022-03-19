@@ -854,10 +854,10 @@ class Notifier(IndicatorUtils):
         # Plot RSI (14)
         self.plot_rsi(ax2, df)
 
-        for ax in ax1, ax2:
-            for label in ax.get_xticklabels():
-                label.set_visible(False)
+        for label in ax1.get_xticklabels():
+            label.set_visible(False)
 
+        for ax in ax1, ax2:
             ax.xaxis.set_major_locator(mticker.MaxNLocator(10))
             ax.xaxis.set_major_formatter(DateFormatter('%d/%b'))
             ax.xaxis.set_tick_params(which='major', pad=15)
