@@ -835,12 +835,18 @@ class Notifier(IndicatorUtils):
         plt.rc('axes', grid=True)
         plt.rc('grid', color='0.75', linestyle='-', linewidth=0.5)
 
-        left, width = 0.1, 0.8
-        rect1 = [left, 0.69, width, 0.23]
-        rect2 = [left, 0.51, width, 0.18]
+        left, width = 0.1, 0.85
+        bottom_spacer = 0.05 # Leave room for the x-axis labels
+        top_spacer = 0.05 # Leave room for the chart title
+        rect2_bottom = bottom_spacer
+        rect2_height = 0.25
+        rect1_bottom = rect2_bottom + rect2_height # 0.3
+        rect1_height = 0.75 - top_spacer - rect2_bottom # 0.65
+        rect2 = [left, rect2_bottom, width, rect2_height]
+        rect1 = [left, rect1_bottom, width, rect1_height]
 
         fig = plt.figure(facecolor='white')
-        fig.set_size_inches(8, 18, forward=True)
+        fig.set_size_inches(10, 10, forward=True)
         axescolor = '#f6f6f6'  # the axes background color
 
         # left, bottom, width, height
