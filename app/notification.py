@@ -848,7 +848,7 @@ class Notifier(IndicatorUtils):
         candle_pattern = self.candle_check(candles_data, candle_period)
         self.plot_candlestick(ax1, df, candle_period, candle_pattern)
 
-        # Plot RSI (14)
+        # Plot RSI (default period 14 days, hot 30, cold 70)
         self.plot_rsi(ax2, df)
 
         # Calculate and plot MACD
@@ -869,7 +869,6 @@ class Notifier(IndicatorUtils):
                 for label in ax.get_xticklabels():
                     label.set_rotation(30)
                     label.set_horizontalalignment('right')
-
             ax.xaxis.set_major_locator(mticker.MaxNLocator(10))
             ax.xaxis.set_major_formatter(DateFormatter('%d/%b'))
             ax.xaxis.set_tick_params(which='major', pad=15)
@@ -1077,26 +1076,26 @@ class Notifier(IndicatorUtils):
         ax.text(0.46, 0.94, 'EMA (99, close)', color='firebrick',
                 transform=ax.transAxes,  fontsize=textsize, va='top')
 
-    def plot_rsi(self, ax, df):
+    def plot_rsi(self, ax, df, periods=14, hot=30, cold=70):
         textsize = 11
         fillcolor = 'darkmagenta'
 
-        rsi = self.relative_strength(df["close"])
+        rsi = self.relative_strength(df["close"], n=periods)
 
         if(df['close'].count() > 120):
             df = df.iloc[-120:]
             rsi = rsi[-120:]
 
         ax.plot(df.index, rsi, color=fillcolor, linewidth=0.5)
-        ax.axhline(70, color='darkmagenta', linestyle='dashed', alpha=0.6)
-        ax.axhline(30, color='darkmagenta', linestyle='dashed', alpha=0.6)
-        ax.fill_between(df.index, rsi, 70, where=(rsi >= 70),
+        ax.axhline(cold, color='darkmagenta', linestyle='dashed', alpha=0.6)
+        ax.axhline(hot, color='darkmagenta', linestyle='dashed', alpha=0.6)
+        ax.fill_between(df.index, rsi, cold, where=(rsi >= cold),
                         facecolor=fillcolor, edgecolor=fillcolor)
-        ax.fill_between(df.index, rsi, 30, where=(rsi <= 30),
+        ax.fill_between(df.index, rsi, hot, where=(rsi <= hot),
                         facecolor=fillcolor, edgecolor=fillcolor)
         ax.set_ylim(0, 100)
-        ax.set_yticks([30, 70])
-        ax.text(0.024, 0.94, 'RSI (14)', va='top',
+        ax.set_yticks([hot, cold])
+        ax.text(0.024, 0.94, f'RSI ({periods})', va='top',
                 transform=ax.transAxes, fontsize=textsize)
 
     def plot_macd(self, ax, df, candle_period):
@@ -1160,7 +1159,7 @@ class Notifier(IndicatorUtils):
         df = df.join(PSR)
         return df
 
-    def relative_strength(self, prices, n=14):
+    def relative_strength(self, prices, n):
         """
         compute the n period relative strength indicator
         http://stockcharts.com/school/doku.php?id=chart_school:glossary_r#relativestrengthindex
